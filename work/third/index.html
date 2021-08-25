@@ -12,9 +12,9 @@
   <body>
     <div class="wrapper">
       <ul class="nav clearfix">
-        <li>HOME</li>
-        <li>NEWS</li>
-        <li>MYPAGE</li>
+        <li id="0">HOME</li>
+        <li id="1">NEWS</li>
+        <li id="2">MYPAGE</li>
       </ul>
       <ul class="contents">
         <li>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</li>
@@ -30,6 +30,38 @@
       // .eq() 引数に応じたindexの要素を指定します。
       // .addClass() クラスを追加します。
       // .removeClass() クラスを削除します。
+
+      // $(function() {
+      //   $('.nav').find('li').click(function() {
+      //     var num = $(this).index();
+      //     $('.contents').find('li')
+      //                   .addClass('is-hidden')
+      //                   .eq(num)
+      //                   .removeClass('is-hidden');
+      //   });
+      // });
+
+      function TabMenu() {
+        this.$nav = $('.nav')
+        this.bind();
+      };
+
+      TabMenu.prototype.bind = function() {
+        this.$nav.on('click',this.nav.bind(this));
+      };
+
+      TabMenu.prototype.nav = function(eo) {
+        console.log(eo.);
+          num = eo.target.id
+          $('.contents').find('li')
+                        .addClass('is-hidden')
+                        .eq(num)
+                        .removeClass('is-hidden');
+        };
+
+      $(function() {
+        var tab_menu = new TabMenu();
+      });
     </script>
   </body>
 </html>

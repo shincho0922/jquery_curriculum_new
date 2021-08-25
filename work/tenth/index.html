@@ -87,6 +87,138 @@
       //     <a class="btn-item" data-js="page-next" href="">次へ</a>
       //   </div>
       // </div>
-    </script>
+      $(function () {
+        // グローバル変数
+        var message = $('.message');
+        var lists = $('.lists');
+        var page = 1
+        var keyword = ''
+
+        // 検索ボタンクリックされたとき
+        $('[data-js="search-btn"]').on('click', function () {
+          keyword = $('.search__text__input').val();
+          // 2ページ目以降にいて検索ボタンが押された時のための記述
+          page = 1
+          searchBooks()
+        });
+        
+        // DOMをリセットする処理
+        function domReset() {
+          lists.empty();
+          message.empty();
+          $('.pager').remove();
+        };
+        
+        // 検索して情報を取ってくる
+        function searchBooks() {
+          domReset()
+          $.ajax({
+            url: 'https://app.rakuten.co.jp/services/api/BooksTotal/Search/20130522',
+            type: 'GET',
+            datatype: 'json',
+            data: {
+              applicationId: appId,
+              booksGenreId: '001',
+              page: page,
+              hits: 20,
+              keyword: keyword
+            }
+          }).done(function(data) {
+            // 正しく処理が完了した
+            if (data.count === 0) {
+              message.append('<p class="message">検索結果が見つかりませんでした。<br>別のキーワードで検索して下さい。</p>');
+              return;
+            };
+            showBooks(data);
+          })
+          .fail(function(error) {
+            // エラーが出た場合
+            errorMessage(error);
+          });
+        }
+          
+          // 取得した本のデータの表示
+          function showBooks(data) {
+            var list_element = ''
+            $.each(data.Items, function(index, value) {
+              list_element +=
+              '<li class="lists__item">' +
+                '<div class="lists__item__inner">'+
+                  '<a href="' + value.Item.itemUrl + '" class="lists__item__link" target="_blank">' +
+                    '<img src="' + value.Item.largeImageUrl + '" class="lists__item__img" alt="">' +
+                    '<p class="lists__item__detail">作品名：' + value.Item.title + '</p>' +
+                    '<p class="lists__item__detail">作者　：' + value.Item.author + '</p>' +
+                    '<p class="lists__item__detail">出版社：' + value.Item.publisherName + '</p>' +
+                  '</a>' +
+                '</div>' +
+              '</li>'
+            });
+            lists.append(list_element);
+            showPager(data.page,data.pageCount);
+          }
+
+        // pager
+        function showPager(currentPage, pageCount) {
+          var pagerElement =
+            '<div class="pager" data-js="pager">' +
+              '<div class="counter">' +
+                '<span class="counter-current">' + currentPage + '</span>' + '/' + '<span class="counter-all">' + pageCount + '</span>' +
+              '</div>' +
+              '<div class="btn-wrapper">' +
+                '<a class="btn-item" data-js="page-prev" href="">前へ</a>' +
+                '<a class="btn-item" data-js="page-next" href="">次へ</a>' +
+              '</div>' +
+            '</div>';
+          lists.after(pagerElement);
+          if (currentPage === 1) {$('[data-js="page-prev"]').addClass('disabled')};
+          if (currentPage === pageCount) {$('[data-js="page-next"]').addClass('disabled')};
+        }
+
+        // ページ移動ボタンがクリックされた時の処理
+        $(document).on('click', '.btn-item', function(e) {
+          e.preventDefault();
+          console.log(e);
+          if ($(this).hasClass('disabled'))return;
+          var move_page = e.target.dataset.js;
+          if (move_page === 'page-prev') {
+            page--;
+            searchBooks();
+          };
+          if (move_page === 'page-next') {
+            page++;
+            searchBooks();
+          };
+        });
+
+        // エラーメッセージの表示
+        function errorMessage(error) {
+          switch(error.status) {
+            case 0:
+            message.append('<p class="error-message">' + '通信に失敗しました。インターネットの接続をご確認ください。' + '</p>');
+            break;
+
+            case 400:
+            message.append('<p class="error-message">' + '検索文字が入力されていません。' + '</p>');
+            break;
+            
+            case 404:
+            message.append('<p class="error-message">' + 'お探しのページが見つかりません。' + '</p>');
+            break;
+              
+            case 429:
+            message.append('<p class="error-message">' + 'リクエスト過多です。しばらく時間を置いてからお試しください。' + '</p>');
+            break;
+            
+            case 500:
+            message.append('<p class="error-message">' + 'システムエラーです。しばらく時間を置いてからお試しください。' + '</p>');
+            break;
+              
+            case 503:
+            message.append('<p class="error-message">' + 'メンテナンス中です。しばらくお待ちください。' + '</p>');
+            break;
+          };
+        };
+      });
+      </script>
   </body>
-</html>
+  </html>
